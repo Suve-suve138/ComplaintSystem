@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Departments</h2>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Head (Username)</th>
+      <th>Email</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in departments %}
+      <tr>
+        <td>{{ d.name }}</td>
+        <td>{{ d.description|default:"-" }}</td>
+        <td>{{ d.head.username|default:"-" }}</td>
+        <td>{{ d.head.email|default:"-" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">No departments created yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

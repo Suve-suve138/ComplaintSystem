@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  /* ══════════════════════════════════════
+     HERO  — Two-panel split design
+     Left: deep forest-green content
+     Right: vivid accent-green stats panel
+  ══════════════════════════════════════ */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    min-height: 520px;
+    background: var(--primary);          /* was --navy */
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* subtle dot grid on entire hero */
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+
+  /* ── LEFT PANEL ── */
+  .hero-left {
+    padding: 72px 56px 72px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-left .container-inner {
+    max-width: 560px;
+    margin-left: auto;
+    padding-right: 48px;
+  }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold-light);  /* mint-green in new palette */
+    margin-bottom: 24px;
+  }
+  .hero-tag span {
+    display: block; width: 24px; height: 2px;
+    background: var(--accent);           /* was --saffron */
+    border-radius: 1px;
+  }
+
+  .hero h1 {
+    font-family: 'Mukta', sans-serif;
+    font-size: 48px; font-weight: 700;
+    color: var(--white); line-height: 1.10;
+    margin-bottom: 6px;
+  }
+  .hero h1 em {
+    font-style: normal; color: var(--accent);             /* was --saffron */
+  }
+  .hero-hindi {
+    font-family: 'Tiro Devanagari Hindi', serif;
+    font-size: 17px; color: rgba(255,255,255,0.38);
+    display: block; margin-bottom: 22px; letter-spacing: 0.02em;
+  }
+  .hero-desc {
+    font-size: 15.5px; color: rgba(255,255,255,0.65);
+    line-height: 1.72; margin-bottom: 36px; max-width: 440px;
+  }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .btn-primary {
+    background: var(--accent);           /* was --saffron */
+    color: var(--white);
+    font-size: 14.5px; font-weight: 700; padding: 12px 26px;
+    border-radius: var(--radius); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 18px rgba(33,160,74,0.38);         /* green shadow */
+  }
+  .btn-primary:hover {
+    background: var(--accent-light);     /* was --saffron-light */
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(33,160,74,0.48);
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    color: var(--white); font-size: 14.5px; font-weight: 600;
+    padding: 11px 22px; border-radius: var(--radius);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.45); }
+
+  /* ── RIGHT PANEL ── */
+  .hero-right {
+    background: var(--accent);           /* was --saffron */
+    position: relative;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 56px 40px;
+    clip-path: polygon(40px 0, 100% 0, 100% 100%, 0 100%);
+    z-index: 1;
+  }
+  .hero-right::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(255,255,255,0.10) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .stats-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(255,255,255,0.60);
+    margin-bottom: 28px;
+  }
+
+  .stat-block {
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.22);
+  }
+  .stat-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+  .stat-num {
+    font-family: 'Mukta', sans-serif;
+    font-size: 38px; font-weight: 700;
+    color: var(--white); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-desc {
+    font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.4;
+  }
+  .stat-bar {
+    margin-top: 10px; height: 3px;
+    background: rgba(255,255,255,0.20); border-radius: 2px; overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%; background: rgba(255,255,255,0.75); border-radius: 2px;
+  }
+
+  /* ══════════════════════════════════════
+     SECTIONS
+  ══════════════════════════════════════ */
+  .section-wrap { padding: 64px 0; }
+  .section-wrap.bg-white { background: var(--white); }
+  .section-wrap.bg-off  { background: var(--off-white); }
+
+  .section-title { text-align: center; margin-bottom: 44px; }
+  .section-title .line {
+    display: block; width: 40px; height: 3px;
+    background: var(--accent);           /* was --saffron */
+    border-radius: 2px; margin: 0 auto 16px;
+  }
+  .section-title h2 {
+    font-family: 'Mukta', sans-serif;
+    font-size: 28px; font-weight: 700;
+    color: var(--primary); margin-bottom: 6px; /* was --navy */
+  }
+  .section-title p { font-size: 15px; color: var(--text-light); }
+
+  /* Steps */
+  .steps-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 20px; position: relative;
+  }
+  .steps-grid::before {
+    content: ''; position: absolute;
+    top: 30px;
+    left: calc(12.5% + 14px); right: calc(12.5% + 14px);
+    height: 1px; background: var(--ash); z-index: 0;
+  }
+  .step-card {
+    background: var(--white); border-radius: var(--radius-lg);
+    padding: 28px 18px; text-align: center;
+    border: 1px solid var(--ash);
+    position: relative; z-index: 1;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .section-wrap.bg-white .step-card { background: var(--off-white); }
+  .step-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+  .step-num {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Mukta', sans-serif; font-size: 17px; font-weight: 700;
+    margin: 0 auto 16px;
+  }
+  /* Step colours — all now in the green family */
+  .step-num.s1 { background: rgba(33,160,74,0.12);  color: var(--accent);        border: 2px solid rgba(33,160,74,0.28); }
+  .step-num.s2 { background: rgba(12,61,33,0.08);   color: var(--primary);       border: 2px solid rgba(12,61,33,0.18); }
+  .step-num.s3 { background: rgba(30,122,68,0.10);  color: var(--primary-light); border: 2px solid rgba(30,122,68,0.25); }
+  .step-num.s4 { background: rgba(19,136,8,0.10);   color: var(--leaf);          border: 2px solid rgba(19,136,8,0.25); }
+  .step-card h3 { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 7px; }
+  .step-card p  { font-size: 13px; color: var(--text-light); line-height: 1.55; }
+
+  /* Features */
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
+  }
+  .feature-card {
+    background: var(--white); border-radius: var(--radius-lg);
+    padding: 28px 24px; border: 1px solid var(--ash);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  /* Icon tints — green variants */
+  .feature-icon.navy    { background: rgba(12,61,33,0.08);  color: var(--primary); }
+  .feature-icon.saffron { background: rgba(33,160,74,0.10); color: var(--accent); }
+  .feature-icon.green   { background: rgba(19,136,8,0.10);  color: var(--leaf); }
+  .feature-card h3 { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 7px; }
+  .feature-card p  { font-size: 13.5px; color: var(--text-mid); line-height: 1.6; }
+
+  /* CTA */
+  .cta-section {
+    background: var(--primary);          /* was --navy */
+    padding: 64px 0;
+  }
+  .cta-inner {
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 32px;
+  }
+  .cta-section h2 {
+    font-family: 'Mukta', sans-serif;
+    font-size: 30px; font-weight: 700;
+    color: var(--white); margin-bottom: 8px;
+  }
+  .cta-section p { font-size: 15px; color: rgba(255,255,255,0.55); }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════ */
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: 1fr; min-height: auto; }
+    .hero-left { padding: 56px 0 48px; }
+    .hero-left .container-inner { max-width: 100%; margin-left: 0; padding-right: 0; }
+    .hero-right { clip-path: none; padding: 40px 20px; }
+    .stat-block { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+    .stat-block:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.22); }
+    .steps-grid { grid-template-columns: repeat(2,1fr); }
+    .steps-grid::before { display: none; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .cta-inner { flex-direction: column; text-align: center; }
+  }
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 34px; }
+    .hero-left { padding: 44px 0 36px; }
+    .section-wrap { padding: 48px 0; }
+    .steps-grid { grid-template-columns: 1fr 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .cta-section { padding: 48px 0; }
+    .stat-block { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- ░░ HERO ░░ -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="container">
+      <div class="hero-left-inner" style="max-width:540px;margin-left:auto;padding-right:40px;">
+        <div class="hero-tag">
+          <span></span>
+          Government of India &nbsp;·&nbsp; Public Grievance Portal
+        </div>
+        <h1>File. Track.<br><em>Resolve.</em></h1>
+        <span class="hero-hindi">शिकायत प्रबंधन प्रणाली</span>
+        <p class="hero-desc">A transparent, accountable platform for every citizen to raise concerns and get timely resolution from concerned government departments.</p>
+        <div class="hero-cta">
+          <a href="{% url 'users:register' %}" class="btn-primary">
+            Get Started
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a href="{% url 'users:login' %}" class="btn-ghost">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="stats-label">Portal at a Glance</div>
+    <div class="stat-block">
+      <div class="stat-num">1,24,800</div>
+      <div class="stat-desc">Complaints Filed</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:78%"></div></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">98,340</div>
+      <div class="stat-desc">Successfully Resolved</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:91%"></div></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">320+</div>
+      <div class="stat-desc">Departments Onboard</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:55%"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ HOW IT WORKS ░░ -->
+<section class="section-wrap bg-white">
+  <div class="container">
+    <div class="section-title">
+      <span class="line"></span>
+      <h2>How It Works</h2>
+      <p>Simple 4-step process from complaint to resolution</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num s1">1</div>
+        <h3>Register</h3>
+        <p>Create your account using Aadhaar-verified details or mobile number.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num s2">2</div>
+        <h3>File Complaint</h3>
+        <p>Select the department, describe your issue, and attach supporting documents.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num s3">3</div>
+        <h3>Track Status</h3>
+        <p>Receive SMS/email updates and track live progress on your dashboard.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num s4">4</div>
+        <h3>Get Resolution</h3>
+        <p>Your complaint is resolved by the official and closed with your feedback.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ FEATURES ░░ -->
+<section class="section-wrap bg-off">
+  <div class="container">
+    <div class="section-title">
+      <span class="line"></span>
+      <h2>Key Features</h2>
+      <p>Built for transparency and citizen empowerment</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon navy">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Role-Based Access</h3>
+        <p>Citizens, department officers, and administrators each have tailored dashboards with appropriate permissions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon saffron">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Real-Time Tracking</h3>
+        <p>Live status updates via SMS and email at every stage — submission, assignment, under review, and resolution.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <h3>Analytics Dashboard</h3>
+        <p>Department-wise performance reports, resolution timelines, and compliance metrics for full accountability.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon navy">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Secure & Private</h3>
+        <p>End-to-end encrypted submissions. Your data is protected and never shared without consent.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon saffron">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3>Multi-Language Support</h3>
+        <p>File complaints in Hindi, English, or your regional language — all 22 scheduled languages supported.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>SLA Compliance</h3>
+        <p>Automated escalation when complaints breach service-level agreements, ensuring timely resolution.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ░░ CTA ░░ -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-inner">
+      <div>
+        <h2>Ready to raise your voice?</h2>
+        <p>Join over 1 lakh citizens who have already used the portal for resolution.</p>
+      </div>
+      <a href="{% url 'users:register' %}" class="btn-primary" style="font-size:15px;padding:13px 32px;white-space:nowrap;">
+        Register Now
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

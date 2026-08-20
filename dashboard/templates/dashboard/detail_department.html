@@ -1,0 +1,843 @@
+{% extends 'dashboard/base.html' %}
+{% block dashboard_content %}
+
+<style>
+  .detail-page {
+    min-height: calc(100vh - 72px);
+    background: var(--off-white);
+    padding: 40px 0 72px;
+  }
+
+  /* ── BACK LINK ── */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-light); text-decoration: none;
+    margin-bottom: 24px;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--primary); }
+
+  /* ── HERO HEADER ── */
+  .detail-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #1e6e42 60%, #2a8a52 100%);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+  .detail-hero::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    pointer-events: none;
+  }
+  .detail-hero::after {
+    content: '';
+    position: absolute; bottom: -60px; right: 80px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    pointer-events: none;
+  }
+
+  .hero-top {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 20px;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .hero-id-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: rgba(255,255,255,0.85);
+    font-family: 'Mukta', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  .hero-title {
+    font-family: 'Mukta', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: #fff; line-height: 1.3; margin: 0;
+  }
+  .hero-badges {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  /* Status badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 5px 12px; border-radius: 20px; white-space: nowrap;
+    font-family: 'Mukta', sans-serif;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+  .badge-open     { background: rgba(33,160,74,0.18);  color: #a8ffca; border: 1px solid rgba(168,255,202,0.25); }
+  .badge-progress { background: rgba(41,121,255,0.18); color: #a8c8ff; border: 1px solid rgba(168,200,255,0.25); }
+  .badge-resolved { background: rgba(0,200,83,0.18);   color: #b9ffdc; border: 1px solid rgba(185,255,220,0.25); }
+  .badge-closed   { background: rgba(255,255,255,0.12);color: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.18); }
+  .badge-rejected { background: rgba(255,82,82,0.18);  color: #ffb3b3; border: 1px solid rgba(255,179,179,0.25); }
+
+  .priority-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 5px 12px; border-radius: 20px; white-space: nowrap;
+    font-family: 'Mukta', sans-serif;
+  }
+  .priority-high   { background: rgba(255,82,82,0.18);   color: #ffb3b3; border: 1px solid rgba(255,179,179,0.25); }
+  .priority-medium { background: rgba(255,167,38,0.18);  color: #ffe0a0; border: 1px solid rgba(255,224,160,0.25); }
+  .priority-low    { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.18); }
+
+  .hero-meta-row {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding-top: 16px;
+  }
+  .hero-meta-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12.5px; color: rgba(255,255,255,0.65);
+  }
+  .hero-meta-item svg { width: 13px; height: 13px; opacity: 0.7; }
+  .hero-meta-item strong { color: rgba(255,255,255,0.9); font-weight: 600; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── LAYOUT ── */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* ── CARD BASE ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.10s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.20s; }
+  .card:last-child { margin-bottom: 0; }
+
+  .card-header {
+    padding: 15px 22px;
+    border-bottom: 1px solid var(--ash);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 10px; }
+  .card-header h3 {
+    font-family: 'Mukta', sans-serif;
+    font-size: 14.5px; font-weight: 700;
+    color: var(--primary); margin: 0;
+  }
+  .card-header-icon {
+    width: 28px; height: 28px;
+    background: rgba(12,61,33,0.07);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary); flex-shrink: 0;
+  }
+  .card-header-icon svg { width: 14px; height: 14px; }
+  .card-body { padding: 20px 22px; }
+
+  /* ── META GRID ── */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .meta-item {
+    padding: 13px 0;
+    border-bottom: 1px solid var(--ash);
+  }
+  .meta-item.full { grid-column: 1 / -1; }
+  .meta-item:nth-last-child(-n+2):not(.full) { border-bottom: none; }
+  .meta-item.full:last-child { border-bottom: none; }
+  .meta-item:nth-child(odd):not(.full)  { padding-right: 20px; }
+  .meta-item:nth-child(even):not(.full) { padding-left: 20px; border-left: 1px solid var(--ash); }
+  .meta-label {
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-light); margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 13.5px; font-weight: 600;
+    color: var(--text-dark); line-height: 1.4;
+  }
+  .meta-value.muted { color: var(--text-light); font-weight: 400; }
+  .escalated-yes {
+    color: #B71C1C; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .escalated-no { color: var(--text-light); font-weight: 600; }
+
+  /* ── STATUS BADGES (card context) ── */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    font-family: 'Mukta', sans-serif;
+  }
+  .status-badge::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .sb-open     { background:rgba(33,160,74,0.10);  color:#1A7A3A; } .sb-open::before     { background: var(--accent); }
+  .sb-progress { background:rgba(30,100,200,0.10); color:#1A5AC8; } .sb-progress::before { background: #2979FF; }
+  .sb-resolved { background:rgba(0,160,60,0.10);   color:#0A6600; } .sb-resolved::before { background: #00c853; }
+  .sb-closed   { background:rgba(90,122,102,0.10); color:var(--text-light); } .sb-closed::before { background: var(--text-light); }
+  .sb-rejected { background:rgba(198,40,40,0.10);  color:#B71C1C; } .sb-rejected::before { background:#C62828; }
+
+  .pri-badge {
+    display:inline-flex; align-items:center;
+    font-size:11.5px; font-weight:700;
+    padding:3px 10px; border-radius:20px;
+    font-family:'Mukta',sans-serif;
+  }
+  .pri-high   { background:rgba(198,40,40,0.09);  color:#B71C1C; }
+  .pri-medium { background:rgba(230,130,0,0.10);  color:#B36000; }
+  .pri-low    { background:rgba(12,61,33,0.08);   color:var(--primary); }
+
+  /* ── DESCRIPTION ── */
+  .description-text {
+    font-size: 14px; color: var(--text-mid);
+    line-height: 1.8; margin: 0;
+  }
+
+  /* ── REMARKS ── */
+  .remarks-block {
+    background: linear-gradient(to right, rgba(12,61,33,0.04), transparent);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 14px 18px;
+  }
+  .remarks-block p {
+    font-size: 14px; color: var(--text-mid);
+    line-height: 1.75; margin: 0;
+  }
+
+  /* ── COMMENTS ── */
+  .comment-list { display: flex; flex-direction: column; }
+  .comment-item {
+    display: flex; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--ash);
+  }
+  .comment-item:last-child { border-bottom: none; }
+  .comment-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Mukta', sans-serif; font-size: 13px; font-weight: 700;
+    color: #fff; text-transform: uppercase;
+  }
+  .comment-content { flex: 1; min-width: 0; }
+  .comment-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-bottom: 6px;
+  }
+  .comment-author {
+    font-size: 13px; font-weight: 700;
+    color: var(--primary); font-family: 'Mukta', sans-serif;
+  }
+  .comment-time { font-size: 11px; color: var(--text-light); }
+  .comment-message {
+    font-size: 13.5px; color: var(--text-mid); line-height: 1.65;
+    background: var(--off-white);
+    border: 1px solid var(--ash);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
+    padding: 10px 14px;
+  }
+  .no-comments {
+    text-align: center; padding: 30px 0;
+    font-size: 13.5px; color: var(--text-light);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .no-comments svg { width: 32px; height: 32px; opacity: 0.25; }
+
+  /* ── FORMS ── */
+  .form-section { padding: 18px 22px; border-top: 1px solid var(--ash); }
+  .form-section-title {
+    font-family: 'Mukta', sans-serif;
+    font-size: 12px; font-weight: 700;
+    color: var(--text-light); margin-bottom: 14px;
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .field-group { margin-bottom: 14px; }
+  .field-group:last-of-type { margin-bottom: 16px; }
+  .field-group label {
+    display: block; font-size: 12.5px; font-weight: 600;
+    color: var(--text-mid); margin-bottom: 6px;
+  }
+  .field-group input,
+  .field-group select,
+  .field-group textarea {
+    width: 100%; padding: 10px 14px;
+    font-size: 13.5px; font-family: 'Noto Sans', sans-serif;
+    color: var(--text-dark); background: var(--off-white);
+    border: 1.5px solid var(--ash); border-radius: var(--radius);
+    outline: none; resize: vertical;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  }
+  .field-group textarea { min-height: 88px; }
+  .field-group input:focus,
+  .field-group select:focus,
+  .field-group textarea:focus {
+    border-color: var(--accent); background: var(--white);
+    box-shadow: 0 0 0 3px rgba(33,160,74,0.12);
+  }
+  .field-group .errorlist { list-style: none; padding: 0; margin: 5px 0 0; }
+  .field-group .errorlist li { font-size: 12px; color: #C62828; }
+
+  .btn-action {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 13.5px; font-weight: 700; font-family: 'Mukta', sans-serif;
+    padding: 10px 20px; border: none; border-radius: var(--radius);
+    cursor: pointer; text-decoration: none;
+    transition: all 0.18s;
+  }
+  .btn-action svg { width: 14px; height: 14px; }
+  .btn-green {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 4px 12px rgba(33,160,74,0.28);
+  }
+  .btn-green:hover { background: var(--accent-light); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(33,160,74,0.36); }
+  .btn-navy {
+    background: var(--primary); color: #fff;
+    box-shadow: 0 4px 12px rgba(12,61,33,0.22);
+  }
+  .btn-navy:hover { background: var(--primary-light); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(12,61,33,0.30); }
+
+  /* ── SIDEBAR ── */
+  .sidebar-card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 18px;
+    animation: fadeUp 0.4s ease 0.2s both;
+  }
+  .sidebar-card:last-child { margin-bottom: 0; }
+
+  /* ── IMAGE ── */
+  .complaint-image {
+    width: 100%; display: block;
+    max-height: 220px; object-fit: cover;
+  }
+  .image-caption {
+    padding: 10px 16px;
+    font-size: 12px; color: var(--text-light);
+    border-top: 1px solid var(--ash);
+    background: var(--off-white);
+  }
+
+  /* ── PROOF ── */
+  .proof-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px;
+  }
+  .proof-icon-wrap {
+    width: 42px; height: 42px; flex-shrink: 0;
+    background: rgba(12,61,33,0.07);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary);
+  }
+  .proof-icon-wrap svg { width: 18px; height: 18px; }
+  .proof-info { flex: 1; }
+  .proof-info-label { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+  .proof-info-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+  .btn-proof-dl {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12.5px; font-weight: 700; font-family: 'Mukta', sans-serif;
+    color: var(--accent); text-decoration: none;
+    border: 1.5px solid rgba(33,160,74,0.3);
+    padding: 7px 14px; border-radius: var(--radius);
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .btn-proof-dl:hover { background: rgba(33,160,74,0.07); border-color: var(--accent); }
+  .btn-proof-dl svg { width: 13px; height: 13px; }
+
+  /* ── STATUS TRACKER ── */
+  .status-track { padding: 18px; }
+  .track-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding-bottom: 16px; position: relative;
+  }
+  .track-step:last-child { padding-bottom: 0; }
+  .track-step:not(:last-child)::after {
+    content: '';
+    position: absolute; left: 12px; top: 28px;
+    width: 2px; height: calc(100% - 12px);
+    background: var(--ash);
+  }
+  .track-step.done:not(:last-child)::after { background: var(--accent); }
+  .track-dot {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--off-white); border: 2px solid var(--ash);
+    position: relative; z-index: 1;
+  }
+  .track-step.done .track-dot { background: var(--accent); border-color: var(--accent); }
+  .track-step.active .track-dot { background: var(--primary); border-color: var(--primary); }
+  .track-dot svg { width: 12px; height: 12px; color: #fff; }
+  .track-dot-inner { width: 8px; height: 8px; border-radius: 50%; background: var(--ash); }
+  .track-step.active .track-dot-inner { background: #fff; }
+  .track-info { padding-top: 3px; }
+  .track-label {
+    font-size: 13px; font-weight: 700; font-family: 'Mukta', sans-serif;
+    color: var(--text-light);
+  }
+  .track-step.done .track-label { color: var(--primary); }
+  .track-step.active .track-label { color: var(--text-dark); }
+  .track-sub { font-size: 11.5px; color: var(--text-light); margin-top: 1px; }
+
+  /* ── QUICK ACTIONS ── */
+  .action-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px;
+    text-decoration: none; color: var(--text-dark);
+    transition: background 0.12s;
+    border-bottom: 1px solid var(--ash);
+    cursor: pointer; background: none; border-left: none; border-right: none; border-top: none;
+    width: 100%; text-align: left; font-family: 'Noto Sans', sans-serif;
+  }
+  .action-item:last-child { border-bottom: none; }
+  .action-item:hover { background: var(--off-white); }
+  .action-icon {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .action-icon svg { width: 15px; height: 15px; }
+  .action-icon.green { background: rgba(33,160,74,0.10); color: var(--accent); }
+  .action-icon.navy  { background: rgba(12,61,33,0.08); color: var(--primary); }
+  .action-icon.red   { background: rgba(198,40,40,0.08); color: #C62828; }
+  .action-label { font-size: 13.5px; font-weight: 600; font-family: 'Mukta', sans-serif; flex: 1; }
+  .action-label.danger { color: #C62828; }
+  .action-chevron { color: var(--text-light); }
+  .action-chevron svg { width: 14px; height: 14px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .meta-grid { grid-template-columns: 1fr; }
+    .meta-item:nth-last-child(-n+2):not(.full) { border-bottom: 1px solid var(--ash); }
+    .meta-item:last-child { border-bottom: none; }
+    .meta-item:nth-child(even):not(.full) { padding-left: 0; border-left: none; }
+    .hero-top { flex-direction: column; }
+    .detail-hero { padding: 22px 20px; }
+  }
+</style>
+
+<div class="detail-page">
+  <div class="container">
+
+    <a class="back-link" href="{% url 'dashboard:department_dashboard' %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Dashboard
+    </a>
+
+    <!-- ── HERO HEADER ── -->
+    <div class="detail-hero">
+      <div class="hero-top">
+        <div>
+          <div class="hero-id-tag">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>
+            #{{ complaint.unique_id }}
+          </div>
+          <h1 class="hero-title">{{ complaint.title }}</h1>
+        </div>
+        <div class="hero-badges">
+          {% with s=complaint.get_status_display|lower %}
+            {% if "open" in s %}<span class="badge badge-open"><span class="badge-dot"></span>{{ complaint.get_status_display }}</span>
+            {% elif "progress" in s %}<span class="badge badge-progress"><span class="badge-dot"></span>{{ complaint.get_status_display }}</span>
+            {% elif "resolved" in s %}<span class="badge badge-resolved"><span class="badge-dot"></span>{{ complaint.get_status_display }}</span>
+            {% elif "closed" in s %}<span class="badge badge-closed"><span class="badge-dot"></span>{{ complaint.get_status_display }}</span>
+            {% elif "rejected" in s %}<span class="badge badge-rejected"><span class="badge-dot"></span>{{ complaint.get_status_display }}</span>
+            {% else %}<span class="badge badge-closed"><span class="badge-dot"></span>{{ complaint.get_status_display }}</span>
+            {% endif %}
+          {% endwith %}
+          {% with p=complaint.get_priority_display|lower %}
+            {% if "high" in p or "urgent" in p %}<span class="priority-pill priority-high">{{ complaint.get_priority_display }}</span>
+            {% elif "medium" in p %}<span class="priority-pill priority-medium">{{ complaint.get_priority_display }}</span>
+            {% else %}<span class="priority-pill priority-low">{{ complaint.get_priority_display }}</span>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+      <div class="hero-meta-row">
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>By <strong>{{ complaint.citizen.username }}</strong></span>
+        </div>
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Filed on <strong>{{ complaint.created_at|date:'d M Y' }}</strong></span>
+        </div>
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span><strong>{{ complaint.category }}</strong></span>
+        </div>
+        {% if complaint.location %}
+        <div class="hero-meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span><strong>{{ complaint.location }}</strong></span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── GRID ── -->
+    <div class="detail-grid">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- Complaint Details Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <h3>Complaint Details</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="meta-grid">
+              <div class="meta-item">
+                <div class="meta-label">Citizen</div>
+                <div class="meta-value">{{ complaint.citizen.username }}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Category</div>
+                <div class="meta-value">{{ complaint.category }}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Department</div>
+                <div class="meta-value {% if not complaint.department %}muted{% endif %}">{{ complaint.department|default:"Not assigned" }}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Location</div>
+                <div class="meta-value {% if not complaint.location %}muted{% endif %}">{{ complaint.location|default:"—" }}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Assigned By</div>
+                <div class="meta-value {% if not complaint.assigned_by %}muted{% endif %}">{{ complaint.assigned_by|default:"—" }}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Escalated</div>
+                <div class="meta-value">
+                  {% if complaint.escalated %}
+                    <span class="escalated-yes">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                      Yes
+                    </span>
+                  {% else %}
+                    <span class="escalated-no">No</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Priority</div>
+                <div class="meta-value">
+                  {% with p=complaint.get_priority_display|lower %}
+                    {% if "high" in p or "urgent" in p %}<span class="pri-badge pri-high">{{ complaint.get_priority_display }}</span>
+                    {% elif "medium" in p %}<span class="pri-badge pri-medium">{{ complaint.get_priority_display }}</span>
+                    {% else %}<span class="pri-badge pri-low">{{ complaint.get_priority_display }}</span>
+                    {% endif %}
+                  {% endwith %}
+                </div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Filed On</div>
+                <div class="meta-value">{{ complaint.created_at|date:'d M Y, H:i' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+              </div>
+              <h3>Description</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="description-text">{{ complaint.description }}</p>
+          </div>
+        </div>
+
+        <!-- Official Remarks (conditional) -->
+        {% if complaint.remarks %}
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <h3>Official Remarks</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="remarks-block">
+              <p>{{ complaint.remarks }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Comments Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2v4l-4-4H9a2 2 0 0 1-2-2v-1"/><path d="M15 2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2l4 4V10a2 2 0 0 0-2-2z"/></svg>
+              </div>
+              <h3>Comments</h3>
+            </div>
+          </div>
+          <div class="card-body" style="padding-bottom: 0;">
+            {% if comments %}
+              <div class="comment-list">
+                {% for c in comments %}
+                <div class="comment-item">
+                  <div class="comment-avatar">{{ c.author.username|slice:":1" }}</div>
+                  <div class="comment-content">
+                    <div class="comment-header">
+                      <span class="comment-author">{{ c.author.username }}</span>
+                      <span class="comment-time">{{ c.created_at|date:'d M Y, H:i' }}</span>
+                    </div>
+                    <div class="comment-message">{{ c.message }}</div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="no-comments">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                No comments yet — be the first to add one.
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Add Comment Form -->
+          <div class="form-section">
+            <div class="form-section-title">Add a Comment</div>
+            <form method="post" novalidate>
+              {% csrf_token %}
+              {% for field in comment_form %}
+                <div class="field-group">
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+              {% endfor %}
+              <button class="btn-action btn-green" type="submit" name="add_comment">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Post Comment
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Feedback Card (conditional) -->
+        {% if feedback_form %}
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <h3>Submit Feedback</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <form method="post" novalidate>
+              {% csrf_token %}
+              {% for field in feedback_form %}
+                <div class="field-group">
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+              {% endfor %}
+              <button class="btn-action btn-navy" type="submit" name="add_feedback">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Submit Feedback
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+      </div><!-- /left -->
+
+      <!-- RIGHT COLUMN -->
+      <div>
+
+        <!-- Uploaded Image (conditional) -->
+        {% if complaint.image %}
+        <div class="sidebar-card">
+          <div class="card-header" style="padding: 13px 18px;">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <h3>Uploaded Image</h3>
+            </div>
+          </div>
+          <img src="{{ complaint.image.url }}" class="complaint-image" alt="Complaint image">
+          <div class="image-caption">Attached photo evidence</div>
+        </div>
+        {% endif %}
+
+        <!-- Proof Document (conditional) -->
+        {% if complaint.proof %}
+        <div class="sidebar-card">
+          <div class="card-header" style="padding: 13px 18px;">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <h3>Proof Document</h3>
+            </div>
+          </div>
+          <div class="proof-row">
+            <div class="proof-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="proof-info">
+              <div class="proof-info-label">Document</div>
+              <div class="proof-info-name">Proof File</div>
+            </div>
+            <a class="btn-proof-dl" href="{{ complaint.proof.url }}" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Open
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Status Tracker -->
+        <div class="sidebar-card">
+          <div class="card-header" style="padding: 13px 18px;">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <h3>Progress</h3>
+            </div>
+          </div>
+          <div class="status-track">
+            {% with s=complaint.get_status_display|lower %}
+            <div class="track-step done">
+              <div class="track-dot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="track-info">
+                <div class="track-label">Submitted</div>
+                <div class="track-sub">{{ complaint.created_at|date:'d M Y' }}</div>
+              </div>
+            </div>
+            <div class="track-step {% if 'open' in s %}active{% elif 'progress' in s or 'resolved' in s or 'closed' in s %}done{% endif %}">
+              <div class="track-dot">
+                {% if 'progress' in s or 'resolved' in s or 'closed' in s %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {% else %}
+                  <div class="track-dot-inner"></div>
+                {% endif %}
+              </div>
+              <div class="track-info">
+                <div class="track-label">Under Review</div>
+                <div class="track-sub">Being assessed by team</div>
+              </div>
+            </div>
+            <div class="track-step {% if 'progress' in s %}active{% elif 'resolved' in s or 'closed' in s %}done{% endif %}">
+              <div class="track-dot">
+                {% if 'resolved' in s or 'closed' in s %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {% else %}
+                  <div class="track-dot-inner"></div>
+                {% endif %}
+              </div>
+              <div class="track-info">
+                <div class="track-label">In Progress</div>
+                <div class="track-sub">Assigned &amp; being resolved</div>
+              </div>
+            </div>
+            <div class="track-step {% if 'resolved' in s %}active{% elif 'closed' in s %}done{% endif %}">
+              <div class="track-dot">
+                {% if 'closed' in s %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {% else %}
+                  <div class="track-dot-inner"></div>
+                {% endif %}
+              </div>
+              <div class="track-info">
+                <div class="track-label">Resolved</div>
+                <div class="track-sub">Issue has been addressed</div>
+              </div>
+            </div>
+            {% endwith %}
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="sidebar-card">
+          <div class="card-header" style="padding: 13px 18px;">
+            <div class="card-header-left">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+              </div>
+              <h3>Actions</h3>
+            </div>
+          </div>
+          <div>
+            <a class="action-item" href="{% url 'complaints:complaint_pdf' complaint.unique_id %}">
+              <div class="action-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
+              <span class="action-label">Download PDF Receipt</span>
+              <span class="action-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+            <a class="action-item" href="{% url 'dashboard:department_dashboard' %}">
+              <div class="action-icon navy">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </div>
+              <span class="action-label">Back to Dashboard</span>
+              <span class="action-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /right -->
+
+    </div><!-- /detail-grid -->
+  </div>
+</div>
+
+{% endblock %}

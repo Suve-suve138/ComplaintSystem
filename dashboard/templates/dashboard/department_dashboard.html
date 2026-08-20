@@ -1,0 +1,236 @@
+{% extends 'dashboard/base.html' %}
+{% block dashboard_content %}
+
+<style>
+  /* -- LAYOUT FIX: lock sidebar + main, only content scrolls -- */
+  html, body { height: 100%; overflow: hidden; }
+  .dashboard-layout { height: 100vh; overflow: hidden; }
+  .dashboard-nav { height: 100vh; overflow: hidden; flex-shrink: 0; }
+  .dashboard-main { height: 100vh; overflow-y: auto; overflow-x: hidden; }
+
+  .table-scroll-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* -- PAGE-LEVEL OVERRIDES -- */
+  .filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .filter-input {
+    padding: 9px 13px;
+    border: 1px solid var(--ash);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-dark);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  .filter-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(33,160,74,0.1);
+  }
+  .filter-input::placeholder { color: var(--text-light); }
+
+  .complaint-id {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-light);
+    background: var(--primary-soft);
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .priority-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+  }
+  .priority-dot::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .priority-high::before { background: #c0392b; }
+  .priority-medium::before { background: #e6a200; }
+  .priority-low::before { background: var(--accent); }
+
+  .escalated-yes {
+    font-size: 11px;
+    font-weight: 700;
+    color: #c0392b;
+    background: rgba(192,57,43,0.08);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .escalated-no {
+    font-size: 11px;
+    color: var(--text-light);
+  }
+
+  .action-links { display: flex; gap: 6px; }
+  .action-link {
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .action-link-view {
+    color: var(--primary);
+    background: var(--primary-soft);
+    border-color: rgba(12,61,33,0.12);
+  }
+  .action-link-view:hover { background: rgba(12,61,33,0.14); }
+  .action-link-update {
+    color: #1a5a85;
+    background: rgba(26,90,133,0.08);
+    border-color: rgba(26,90,133,0.15);
+  }
+  .action-link-update:hover { background: rgba(26,90,133,0.14); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 13px;
+  }
+  .empty-state svg { width: 36px; height: 36px; margin-bottom: 10px; opacity: 0.3; }
+
+  .citizen-name { font-weight: 500; color: var(--text-dark); }
+</style>
+
+<!-- -- TOP BAR -- -->
+<div class="main-topbar">
+  <div>
+    <div class="page-title">Department Dashboard</div>
+    <div class="page-sub">Track and resolve complaints assigned to your department</div>
+  </div>
+</div>
+
+<!-- -- STATS -- -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total Complaints</div>
+    <div class="stat-value">{{ total }}</div>
+    <div class="stat-change">Assigned to your department</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Pending</div>
+    <div class="stat-value" style="color:#a07000">{{ pending }}</div>
+    <div class="stat-change" style="color:#a07000">Awaiting action</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Resolved</div>
+    <div class="stat-value">{{ resolved }}</div>
+    <div class="stat-change">Closed successfully</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Resolution Rate</div>
+    <div class="stat-value">
+      {% if total %}{{ resolved|floatformat:0 }}%{% else %}-{% endif %}
+    </div>
+    <div class="stat-change">Of assigned complaints</div>
+  </div>
+</div>
+
+<!-- -- FILTERS -- -->
+<div class="content-card" style="margin-bottom:20px; padding:16px 20px;">
+  <form class="filter-row" method="get">
+    <input class="filter-input" name="status" placeholder="Filter by status..." value="{{ request.GET.status }}">
+    <input class="filter-input" name="category" placeholder="Filter by category..." value="{{ request.GET.category }}">
+    <input class="filter-input" type="date" name="date" value="{{ request.GET.date }}">
+    <button class="btn btn-primary" type="submit">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:-2px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Filter
+    </button>
+  </form>
+</div>
+
+<!-- -- COMPLAINTS TABLE -- -->
+<div class="content-card">
+  <div class="card-header">
+    <span class="card-title">Department Complaints</span>
+  </div>
+
+  <div class="table-scroll-wrap">
+  <table class="table" style="min-width:780px">
+    <thead>
+      <tr>
+        <th>Complaint ID</th>
+        <th>Title</th>
+        <th>Citizen</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Escalated</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in complaints %}
+      <tr>
+        <td><span class="complaint-id">{{ c.unique_id }}</span></td>
+        <td style="font-weight:500;color:var(--text-dark);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.title }}</td>
+        <td><span class="citizen-name">{{ c.citizen.username }}</span></td>
+        <td>
+          {% with status=c.get_status_display %}
+            {% if status == "Resolved" or status == "Closed" %}
+              <span class="badge badge-green">{{ status }}</span>
+            {% elif status == "Pending" or status == "Open" %}
+              <span class="badge badge-yellow">{{ status }}</span>
+            {% else %}
+              <span class="badge badge-red">{{ status }}</span>
+            {% endif %}
+          {% endwith %}
+        </td>
+        <td>
+          {% with p=c.get_priority_display %}
+            {% if p == "High" %}
+              <span class="priority-dot priority-high">{{ p }}</span>
+            {% elif p == "Medium" %}
+              <span class="priority-dot priority-medium">{{ p }}</span>
+            {% else %}
+              <span class="priority-dot priority-low">{{ p }}</span>
+            {% endif %}
+          {% endwith %}
+        </td>
+        <td>
+          {% if c.escalated %}
+            <span class="escalated-yes">Escalated</span>
+          {% else %}
+            <span class="escalated-no">No</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="action-links">
+            <a class="action-link action-link-view" href="{% url 'complaints:detail' c.unique_id %}">View</a>
+            <a class="action-link action-link-update" href="{% url 'dashboard:update_status' c.unique_id %}">Update</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            No complaints found matching your filters.
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+{% endblock %}

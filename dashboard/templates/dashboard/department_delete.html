@@ -1,0 +1,72 @@
+{% extends 'dashboard/base.html' %}
+{% block dashboard_content %}
+<style>
+  /* -- LAYOUT FIX: lock sidebar + main, only content scrolls -- */
+  html, body { height: 100%; overflow: hidden; }
+  .dashboard-layout { height: 100vh; overflow: hidden; }
+  .dashboard-nav { height: 100vh; overflow: hidden; flex-shrink: 0; }
+  .dashboard-main { height: 100vh; overflow-y: auto; overflow-x: hidden; }
+
+  .confirm-card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .confirm-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+  }
+  .confirm-sub {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+  }
+  .warn-box {
+    background: rgba(192,57,43,0.08);
+    border: 1px solid rgba(192,57,43,0.2);
+    color: #a02d2d;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  .form-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .btn-ghost {
+    background: var(--white);
+    color: var(--text-mid);
+    border: 1px solid var(--ash);
+  }
+  .btn-ghost:hover { background: var(--ash); }
+  .btn-danger {
+    background: #a02d2d;
+    color: var(--white);
+  }
+  .btn-danger:hover { background: #8b2727; }
+</style>
+
+<div class="main-topbar">
+  <div>
+    <div class="page-title">Delete Department</div>
+    <div class="page-sub">This action cannot be undone</div>
+  </div>
+</div>
+
+<div class="confirm-card">
+  <div class="confirm-title">Delete "{{ department.name }}"?</div>
+  <div class="confirm-sub">The department will be removed from the system.</div>
+  <div class="warn-box">Any complaints previously assigned to this department will remain, but the department link will be cleared.</div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-actions">
+      <button class="btn btn-danger" type="submit">Yes, Delete</button>
+      <a href="{% url 'dashboard:list_departments' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

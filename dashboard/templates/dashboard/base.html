@@ -1,0 +1,372 @@
+{% block content %}
+<style>
+  :root {
+    --primary: #0c3d21;
+    --primary-soft: rgba(12, 61, 33, 0.08);
+    --accent: #21a04a;
+    --text-dark: #1a1a1a;
+    --text-mid: #4a4a4a;
+    --text-light: #757575;
+    --off-white: #f8faf9;
+    --white: #ffffff;
+    --ash: #eceee0;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .dashboard-layout {
+    display: grid;
+    grid-template-columns: 256px 1fr;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--off-white);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .dashboard-nav {
+    background: var(--primary);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .nav-brand {
+    padding: 28px 20px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-brand-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .nav-brand h3 {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.3px;
+  }
+
+  .nav-section {
+    padding: 14px 12px;
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .nav-section::-webkit-scrollbar { display: none; }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding: 0 8px;
+    margin: 18px 0 6px;
+  }
+  .nav-section-label:first-child { margin-top: 4px; }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius);
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    margin-bottom: 2px;
+    position: relative;
+  }
+  .nav-link:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+  }
+  .nav-link.active {
+    background: rgba(33,160,74,0.2);
+    color: var(--white);
+  }
+  .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 58%;
+    background: var(--accent);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .nav-icon {
+    width: 17px; height: 17px;
+    opacity: 0.65;
+    flex-shrink: 0;
+  }
+  .nav-link.active .nav-icon,
+  .nav-link:hover .nav-icon { opacity: 1; }
+
+  .nav-badge {
+    margin-left: auto;
+    background: rgba(33,160,74,0.25);
+    color: #6ddc96;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .nav-footer {
+    padding: 14px 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-logout {
+    margin-top: 8px;
+    background: rgba(255,255,255,0.06);
+    justify-content: center;
+  }
+  .nav-logout:hover { background: rgba(255,255,255,0.12); }
+  .user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .user-card:hover { background: rgba(255,255,255,0.07); }
+  .user-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--white);
+    flex-shrink: 0;
+  }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--white); }
+  .user-role { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 1px; }
+
+  /* ─── MAIN CONTENT ─── */
+  .dashboard-main {
+    background: var(--off-white);
+    padding: 32px 36px;
+    min-height: 100vh;
+  }
+
+  .main-topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: -0.4px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-top: 3px;
+  }
+  .topbar-actions { display: flex; gap: 10px; }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-ghost {
+    background: var(--white);
+    color: var(--text-mid);
+    border: 1px solid var(--ash);
+  }
+  .btn-ghost:hover { background: var(--ash); }
+  .btn-primary {
+    background: var(--primary);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: #0e4f2a; }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 12px rgba(33,160,74,0.08);
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+  }
+  .stat-change { font-size: 12px; margin-top: 6px; font-weight: 500; color: var(--accent); }
+  .stat-change.down { color: #c0392b; }
+
+  /* Table card */
+  .content-card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text-dark); }
+
+  .table { width: 100%; border-collapse: collapse; }
+  .table th {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--ash);
+  }
+  .table td {
+    padding: 11px 12px;
+    font-size: 13px;
+    color: var(--text-mid);
+    border-bottom: 1px solid var(--ash);
+  }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: var(--primary-soft); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-green { background: rgba(33,160,74,0.1); color: #1a7a38; }
+  .badge-yellow { background: rgba(230,162,0,0.1); color: #a07000; }
+  .badge-red { background: rgba(192,57,43,0.1); color: #c0392b; }
+</style>
+
+<div class="dashboard-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="dashboard-nav">
+    <div class="nav-brand">
+      <div class="nav-brand-label">Workspace</div>
+      <h3>Dashboard</h3>
+    </div>
+
+    <div class="nav-section">
+
+      <div class="nav-section-label">General</div>
+      <a href="{% url 'users:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Overview
+      </a>
+
+      {% if user.is_authenticated %}
+
+        {% if user.is_superuser or user.role == "admin" %}
+        <div class="nav-section-label">Admin</div>
+        <a href="{% url 'dashboard:admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Admin Dashboard
+        </a>
+        <a href="{% url 'dashboard:analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Analytics
+          <span class="nav-badge">Live</span>
+        </a>
+        <a href="{% url 'dashboard:report' %}" class="nav-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Download Report
+        </a>
+
+        <div class="nav-section-label">Departments</div>
+        <a href="{% url 'dashboard:create_department' %}" class="nav-link {% if request.resolver_match.url_name == 'create_department' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Add Department
+        </a>
+        <a href="{% url 'dashboard:list_departments' %}" class="nav-link {% if request.resolver_match.url_name == 'list_departments' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          View Departments
+        </a>
+        {% endif %}
+
+        {% if user.role == "department" %}
+        <div class="nav-section-label">My Area</div>
+        <a href="{% url 'dashboard:department_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'department_dashboard' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Department Dashboard
+        </a>
+        {% endif %}
+
+      {% endif %}
+    </div>
+
+    <div class="nav-footer">
+      <div class="user-card">
+        <div class="user-avatar">{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ user.get_full_name }}</div>
+          <div class="user-role">{{ user.role|capfirst|default:"User" }}</div>
+        </div>
+      </div>
+      <a href="{% url 'users:logout' %}" class="nav-link nav-logout">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <section class="dashboard-main">
+    {% block dashboard_content %}{% endblock %}
+  </section>
+
+</div>
+{% endblock %}

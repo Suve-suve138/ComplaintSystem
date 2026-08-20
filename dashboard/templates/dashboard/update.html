@@ -1,0 +1,97 @@
+{% extends 'dashboard/base.html' %}
+{% block dashboard_content %}
+<style>
+  /* -- LAYOUT FIX: lock sidebar + main, only content scrolls -- */
+  html, body { height: 100%; overflow: hidden; }
+  .dashboard-layout { height: 100vh; overflow: hidden; }
+  .dashboard-nav { height: 100vh; overflow: hidden; flex-shrink: 0; }
+  .dashboard-main { height: 100vh; overflow-y: auto; overflow-x: hidden; }
+
+  .complaint-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-top: 4px;
+  }
+
+  .form-card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+  }
+  .form-grid p { margin: 0; }
+  .form-grid p label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+  .form-grid p input,
+  .form-grid p select,
+  .form-grid p textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--ash);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-dark);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-grid p input:focus,
+  .form-grid p select:focus,
+  .form-grid p textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(33,160,74,0.1);
+  }
+  .form-grid p textarea { min-height: 120px; resize: vertical; }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .btn-ghost {
+    background: var(--white);
+    color: var(--text-mid);
+    border: 1px solid var(--ash);
+  }
+  .btn-ghost:hover { background: var(--ash); }
+
+  @media (max-width: 980px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="main-topbar">
+  <div>
+    <div class="page-title">Update Complaint</div>
+    <div class="page-sub">Edit complaint details and assignment</div>
+    <div class="complaint-title">{{ complaint.title }}</div>
+  </div>
+</div>
+
+<div class="form-card">
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      {{ form.as_p }}
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Update</button>
+      <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-ghost">Back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

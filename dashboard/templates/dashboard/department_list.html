@@ -1,0 +1,117 @@
+{% extends 'dashboard/base.html' %}
+{% block dashboard_content %}
+<style>
+  /* -- LAYOUT FIX: lock sidebar + main, only content scrolls -- */
+  html, body { height: 100%; overflow: hidden; }
+  .dashboard-layout { height: 100vh; overflow: hidden; }
+  .dashboard-nav { height: 100vh; overflow: hidden; flex-shrink: 0; }
+  .dashboard-main { height: 100vh; overflow-y: auto; overflow-x: hidden; }
+
+  .table-scroll-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dept-name {
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+  .dept-meta {
+    font-size: 12px;
+    color: var(--text-light);
+  }
+  .action-links { display: flex; gap: 6px; }
+  .action-link {
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: transparent;
+  }
+  .action-link-edit {
+    color: #1a5a85;
+    background: rgba(26,90,133,0.08);
+    border-color: rgba(26,90,133,0.15);
+  }
+  .action-link-edit:hover { background: rgba(26,90,133,0.14); }
+  .action-link-delete {
+    color: #a02d2d;
+    background: rgba(192,57,43,0.08);
+    border-color: rgba(192,57,43,0.18);
+  }
+  .action-link-delete:hover { background: rgba(192,57,43,0.14); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 13px;
+  }
+  .empty-state svg { width: 36px; height: 36px; margin-bottom: 10px; opacity: 0.3; }
+  .topbar-actions .btn { text-decoration: none; }
+</style>
+
+<div class="main-topbar">
+  <div>
+    <div class="page-title">Departments</div>
+    <div class="page-sub">Manage departments and their assigned heads</div>
+  </div>
+  <div class="topbar-actions">
+    <a href="{% url 'dashboard:create_department' %}" class="btn btn-primary">
+      + Add Department
+    </a>
+  </div>
+</div>
+
+<div class="content-card">
+  <div class="card-header">
+    <span class="card-title">All Departments</span>
+  </div>
+
+  <div class="table-scroll-wrap">
+  <table class="table" style="min-width:820px">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Head (Username)</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in departments %}
+      <tr>
+        <td>
+          <div class="dept-name">{{ d.name }}</div>
+          <div class="dept-meta">ID: {{ d.id }}</div>
+        </td>
+        <td>{{ d.description|default:"-" }}</td>
+        <td>{{ d.head.username|default:"-" }}</td>
+        <td>{{ d.head.email|default:"-" }}</td>
+        <td>
+          <div class="action-links">
+            <a class="action-link action-link-edit" href="{% url 'dashboard:edit_department' d.id %}">Edit</a>
+            <a class="action-link action-link-delete" href="{% url 'dashboard:delete_department' d.id %}">Delete</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px"><path d="M4 7h16"/><path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/><rect x="4" y="7" width="16" height="13" rx="2"/></svg>
+            No departments created yet.
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Analytics</h2>
+<p>Total complaints: {{ total }}</p>
+
+<h4>Status Breakdown</h4>
+<ul>
+  {% for item in status_counts %}
+    <li>{{ item.status }}: {{ item.count }}</li>
+  {% endfor %}
+</ul>
+
+<h4>Category Breakdown</h4>
+<ul>
+  {% for item in category_counts %}
+    <li>{{ item.category }}: {{ item.count }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

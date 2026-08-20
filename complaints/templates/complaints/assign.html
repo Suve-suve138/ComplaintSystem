@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Assign Complaint</h2>
+<p><strong>{{ complaint.title }}</strong></p>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-primary" type="submit">Assign</button>
+</form>
+{% endblock %}

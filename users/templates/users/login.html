@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  /* ── PAGE WRAPPER ── */
+  .auth-page {
+    min-height: calc(100vh - 72px);
+    background: var(--off-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+  }
+
+  /* ── CARD ── */
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  
+  .auth-card-body {
+    padding: 40px 40px 36px;
+  }
+
+  /* ── HEADER ── */
+  .auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .auth-icon {
+    width: 52px; height: 52px;
+    background: rgba(33,160,74,0.10);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    color: var(--accent);
+  }
+  .auth-header h2 {
+    font-family: 'Mukta', sans-serif;
+    font-size: 24px; font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .auth-header p {
+    font-size: 13.5px;
+    color: var(--text-light);
+  }
+
+  /* ── FORM FIELDS ── */
+  .field-group {
+    margin-bottom: 18px;
+  }
+  .field-group label {
+    display: block;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+  .field-group input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14.5px;
+    font-family: 'Noto Sans', sans-serif;
+    color: var(--text-dark);
+    background: var(--off-white);
+    border: 1.5px solid var(--ash);
+    border-radius: var(--radius);
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    outline: none;
+  }
+  .field-group input:focus {
+    border-color: var(--accent);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(33,160,74,0.12);
+  }
+  .field-group input::placeholder { color: var(--text-light); }
+
+  /* Django form error list */
+  .field-group .errorlist {
+    list-style: none; padding: 0; margin: 6px 0 0;
+  }
+  .field-group .errorlist li {
+    font-size: 12.5px; color: #C62828;
+  }
+
+  /* non-field errors */
+  .form-errors {
+    background: #FFF5F5;
+    border: 1px solid #FFCDD2;
+    border-left: 4px solid #C62828;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    font-size: 13.5px; color: #B71C1C;
+  }
+
+  /* ── SUBMIT ── */
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    color: var(--white);
+    font-size: 15px; font-weight: 700;
+    font-family: 'Mukta', sans-serif;
+    padding: 12px 20px;
+    border: none; border-radius: var(--radius);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(33,160,74,0.30);
+    margin-top: 8px;
+  }
+  .btn-submit:hover {
+    background: var(--accent-light);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(33,160,74,0.40);
+  }
+  .btn-submit:active { transform: translateY(0); }
+
+  /* ── FOOTER LINKS ── */
+  .auth-footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--ash);
+    font-size: 13.5px;
+    color: var(--text-light);
+  }
+  .auth-footer a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .auth-footer a:hover { text-decoration: underline; }
+
+  .auth-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 20px 0 16px;
+    color: var(--text-light); font-size: 12px;
+  }
+  .auth-divider::before,
+  .auth-divider::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--ash);
+  }
+
+  @media (max-width: 480px) {
+    .auth-card-body { padding: 28px 24px 24px; }
+  }
+</style>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-card-body">
+
+      <div class="auth-header">
+        <div class="auth-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+        </div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to your Shikayat Portal account</p>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="form-errors">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        {% for field in form %}
+          <div class="field-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <ul class="errorlist">
+                {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <button class="btn-submit" type="submit">
+          Sign In
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Don't have an account? <a href="{% url 'users:register' %}">Register here</a>
+        <div class="auth-divider">or</div>
+        <a href="{% url 'users:org_login' %}">Login as Organisation</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

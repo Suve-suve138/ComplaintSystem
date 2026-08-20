@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  .success-page {
+    min-height: calc(100vh - 72px);
+    background: var(--off-white);
+    padding: 40px 0 64px;
+  }
+
+  /* ── BACK LINK ── */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-light); text-decoration: none;
+    margin-bottom: 20px;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--primary); }
+
+  /* ── SUCCESS HERO ── */
+  .success-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeUp 0.45s ease both;
+  }
+
+  .success-ring {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 10px rgba(33,160,74,0.12), 0 6px 24px rgba(12,61,33,0.20);
+    margin-bottom: 18px;
+    animation: popIn 0.5s cubic-bezier(.34,1.56,.64,1) 0.15s both;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .success-ring svg { width: 32px; height: 32px; }
+
+  .success-hero h2 {
+    font-family: 'Mukta', sans-serif;
+    font-size: 26px; font-weight: 800;
+    color: var(--primary); margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .success-hero p {
+    font-size: 14px; color: var(--text-light); max-width: 400px;
+  }
+
+  /* ── TWO-COL LAYOUT ── */
+  .success-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* ── CARD (inherits from raise page) ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 24px;
+    animation: fadeUp 0.45s ease 0.1s both;
+  }
+  .card:last-child { margin-bottom: 0; }
+
+  .card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--ash);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-header h3 {
+    font-family: 'Mukta', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--primary);
+  }
+  .card-header-icon {
+    width: 30px; height: 30px;
+    background: rgba(12,61,33,0.07);
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary); flex-shrink: 0;
+  }
+  .card-body { padding: 0; }
+
+  /* ── COMPLAINT ID BANNER ── */
+  .id-banner {
+    background: linear-gradient(135deg, var(--primary) 0%, rgba(12,61,33,0.85) 100%);
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .id-banner-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: rgba(255,255,255,0.6);
+    margin-bottom: 3px;
+  }
+  .id-banner-value {
+    font-family: 'Mukta', sans-serif;
+    font-size: 22px; font-weight: 800; color: #fff;
+    letter-spacing: 1px;
+  }
+  .id-copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: #fff; font-size: 12px; font-weight: 600;
+    padding: 7px 14px; border-radius: var(--radius);
+    cursor: pointer; transition: background 0.15s;
+    font-family: 'Noto Sans', sans-serif;
+  }
+  .id-copy-btn:hover { background: rgba(255,255,255,0.22); }
+
+  /* ── DETAIL ROWS ── */
+  .detail-row {
+    display: flex; align-items: flex-start;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--ash);
+    gap: 14px;
+    transition: background 0.12s;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row:hover { background: var(--off-white); }
+
+  .detail-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: var(--off-white);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary); margin-top: 1px;
+  }
+  .detail-icon svg { width: 15px; height: 15px; }
+
+  .detail-content { flex: 1; min-width: 0; }
+  .detail-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--text-light); margin-bottom: 3px;
+  }
+  .detail-value {
+    font-family: 'Mukta', sans-serif;
+    font-size: 15px; font-weight: 600;
+    color: var(--text-dark); line-height: 1.45;
+  }
+  .detail-value.muted { color: var(--text-light); font-weight: 400; font-family: 'Noto Sans', sans-serif; font-size: 14px; }
+
+  /* ── PILLS ── */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 700;
+    padding: 3px 10px; border-radius: 100px;
+    font-family: 'Mukta', sans-serif; letter-spacing: 0.2px;
+  }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pill-green  { background: #e4f5ea; color: #1a7a46; }
+  .pill-orange { background: #fff3e0; color: #c0640a; }
+  .pill-red    { background: #fdecea; color: #b71c1c; }
+  .pill-blue   { background: #e8f0fe; color: #1a56ac; }
+  .pill-grey   { background: var(--off-white); color: var(--text-mid); border: 1px solid var(--ash); }
+
+  /* ── ACTION BUTTONS ── */
+  .form-actions {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap; margin-top: 4px;
+    animation: fadeUp 0.45s ease 0.25s both;
+  }
+
+  .btn-submit {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: var(--white);
+    font-size: 14px; font-weight: 700; font-family: 'Mukta', sans-serif;
+    padding: 11px 22px; border: none; border-radius: var(--radius);
+    cursor: pointer; text-decoration: none;
+    box-shadow: 0 4px 12px rgba(33,160,74,0.30);
+    transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+  }
+  .btn-submit:hover {
+    background: var(--accent-light); transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(33,160,74,0.38);
+  }
+
+  .btn-outline-link {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 13.5px; font-weight: 600;
+    color: var(--text-mid); text-decoration: none;
+    padding: 10px 16px; border-radius: var(--radius);
+    border: 1.5px solid var(--ash);
+    transition: all 0.15s; font-family: 'Noto Sans', sans-serif;
+    background: var(--white);
+  }
+  .btn-outline-link:hover {
+    color: var(--primary); border-color: var(--primary);
+    background: rgba(12,61,33,0.03);
+  }
+  .btn-outline-link svg { width: 14px; height: 14px; }
+
+  /* ── SIDEBAR ── */
+  .tip-card {
+    background: var(--white);
+    border: 1px solid var(--ash);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: fadeUp 0.45s ease 0.2s both;
+  }
+  .tip-card:last-child { margin-bottom: 0; }
+  .tip-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--ash);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .tip-card-header span {
+    font-family: 'Mukta', sans-serif;
+    font-size: 14px; font-weight: 700; color: var(--primary);
+  }
+  .tip-card-body { padding: 16px 18px; }
+
+  .step-list { list-style: none; padding: 0; counter-reset: steps; }
+  .step-list li {
+    counter-increment: steps;
+    font-size: 13px; color: var(--text-mid); line-height: 1.55;
+    padding: 8px 0 8px 36px;
+    border-bottom: 1px solid var(--ash);
+    position: relative;
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before {
+    content: counter(steps);
+    position: absolute; left: 0; top: 8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(12,61,33,0.08); color: var(--primary);
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-list li.done { color: var(--text-light); }
+  .step-list li.done::before {
+    content: '✓'; background: var(--accent); color: #fff;
+  }
+  .step-list li.active { color: var(--text-dark); font-weight: 600; }
+  .step-list li.active::before {
+    background: var(--primary); color: #fff;
+  }
+
+  .notice-box {
+    display: flex; gap: 10px;
+    background: rgba(33,160,74,0.07);
+    border: 1px solid rgba(33,160,74,0.2);
+    border-radius: var(--radius);
+    padding: 13px 16px;
+    margin-top: 0;
+  }
+  .notice-box svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+  .notice-box p { font-size: 13px; color: var(--text-mid); line-height: 1.55; }
+  .notice-box strong { color: var(--primary); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .success-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="success-page">
+  <div class="container">
+
+    <a class="back-link" href="{% url 'complaints:citizen_dashboard' %}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Dashboard
+    </a>
+
+    <!-- Success Hero -->
+    <div class="success-hero">
+      <div class="success-ring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2>Complaint Submitted!</h2>
+      <p>Your complaint has been successfully filed. You can track its progress from your dashboard.</p>
+    </div>
+
+    <div class="success-grid">
+
+      <!-- ── MAIN DETAIL CARD ── -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <h3>Complaint Details</h3>
+          </div>
+
+          <!-- ID Banner -->
+          <div class="id-banner">
+            <div>
+              <div class="id-banner-label">Complaint ID</div>
+              <div class="id-banner-value">{{ complaint.unique_id }}</div>
+            </div>
+            <button class="id-copy-btn" onclick="copyId('{{ complaint.unique_id }}', this)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy ID
+            </button>
+          </div>
+
+          <div class="card-body">
+
+            <!-- Title -->
+            <div class="detail-row">
+              <div class="detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+              </div>
+              <div class="detail-content">
+                <div class="detail-label">Title</div>
+                <div class="detail-value">{{ complaint.title }}</div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="detail-row">
+              <div class="detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="9" y2="18"/></svg>
+              </div>
+              <div class="detail-content">
+                <div class="detail-label">Description</div>
+                <div class="detail-value muted">{{ complaint.description }}</div>
+              </div>
+            </div>
+
+            <!-- Category & Priority -->
+            <div class="detail-row">
+              <div class="detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div class="detail-content">
+                <div class="detail-label">Category</div>
+                <div class="detail-value">{{ complaint.category }}</div>
+              </div>
+            </div>
+
+            <!-- Priority -->
+            <div class="detail-row">
+              <div class="detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="detail-content">
+                <div class="detail-label">Priority</div>
+                <div class="detail-value">
+                  {% with p=complaint.get_priority_display %}
+                    {% if p == 'High' or p == 'Urgent' %}
+                      <span class="pill pill-red"><span class="pill-dot"></span>{{ p }}</span>
+                    {% elif p == 'Medium' %}
+                      <span class="pill pill-orange"><span class="pill-dot"></span>{{ p }}</span>
+                    {% else %}
+                      <span class="pill pill-blue"><span class="pill-dot"></span>{{ p }}</span>
+                    {% endif %}
+                  {% endwith %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="detail-row">
+              <div class="detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="detail-content">
+                <div class="detail-label">Status</div>
+                <div class="detail-value">
+                  <span class="pill pill-grey"><span class="pill-dot"></span>{{ complaint.get_status_display }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="detail-row">
+              <div class="detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="detail-content">
+                <div class="detail-label">Location</div>
+                <div class="detail-value {% if not complaint.location %}muted{% endif %}">{{ complaint.location|default:"—" }}</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <a class="btn-submit" href="{% url 'complaints:complaint_pdf' complaint.unique_id %}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </a>
+          <a class="btn-outline-link" href="{% url 'complaints:detail' complaint.unique_id %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            View Details
+          </a>
+          <a class="btn-outline-link" href="{% url 'complaints:citizen_dashboard' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- ── SIDEBAR ── -->
+      <div>
+
+        <!-- What's next -->
+        <div class="tip-card">
+          <div class="tip-card-header">
+            <div class="card-header-icon" style="width:28px;height:28px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span>What happens next?</span>
+          </div>
+          <div class="tip-card-body">
+            <ol class="step-list">
+              <li class="done">Complaint submitted</li>
+              <li class="active">Under review by our team</li>
+              <li>Assigned to a department</li>
+              <li>Resolution in progress</li>
+              <li>Marked as resolved</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Save your ID notice -->
+        <div class="tip-card">
+          <div class="tip-card-header">
+            <div class="card-header-icon" style="width:28px;height:28px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <span>Keep your ID safe</span>
+          </div>
+          <div class="tip-card-body">
+            <div class="notice-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <p>Save your <strong>Complaint ID</strong> to track status anytime. You can also download the PDF receipt for your records.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function copyId(id, btn) {
+    navigator.clipboard.writeText(id).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+      setTimeout(() => { btn.innerHTML = orig; }, 1800);
+    });
+  }
+</script>
+
+{% endblock %}
